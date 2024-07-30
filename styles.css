@@ -1,0 +1,91 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f5f5f5;
+    color: #333;
+  }
+  
+  header {
+    padding: 20px;
+    background-color: #ef5350;
+    color: white;
+  }
+  
+  #search-bar {
+    padding: 10px;
+    width: 80%;
+    max-width: 500px;
+    margin: 20px auto;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  #pokemon-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .pokemon-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin: 10px;
+    padding: 15px;
+    width: 150px;
+    text-align: center;
+  }
+  
+  .pokemon-card img {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .pokemon-card h3 {
+    margin: 10px 0;
+    font-size: 1.2em;
+  }
+
+  
+/* styles.css */
+#pagination {
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  #pagination button, #go-to-page {
+    margin: 0 10px;
+    padding: 10px 20px;
+    background-color: #ef5350;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  #pagination button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  #page-number {
+    width: 50px;
+    text-align: center;
+  }
+  
+  #page-info {
+    font-size: 1.2em;
+  }
+  
+  #region-select {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokedex</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Pokedex</h1>
+    <input type="text" id="search-bar" placeholder="Search for Pokémon...">
+    <select id="region-select">
+      <option value="all">All Regions</option>
+      <option value="kanto">Kanto</option>
+      <option value="johto">Johto</option>
+      <option value="hoenn">Hoenn</option>
+      <option value="sinnoh">Sinnoh</option>
+      <option value="unova">Unova</option>
+      <option value="kalos">Kalos</option>
+      <option value="alola">Alola</option>
+      <option value="galar">Galar</option>
+      <option value="paldea">Paldea</option>
+    </select>
+  </header>
+  <main id="pokemon-container">
+    <!-- Pokémon cards will be displayed here -->
+  </main>
+  <div id="pagination">
+    <button id="prev" disabled>Previous</button>
+    <input type="number" id="page-number" min="1" value="1">
+    <button id="go-to-page">Go</button>
+    <span id="page-info"></span>
+    <button id="next">Next</button>
+  </div>
+  <script src="scripts.js"></script>
+</body>
+</html>
