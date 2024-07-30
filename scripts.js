@@ -3,15 +3,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const pokemonContainer = document.getElementById('pokemon-container');
     const searchBar = document.getElementById('search-bar');
     const regionSelect = document.getElementById('region-select');
+    const typeSelect = document.getElementById('type-select');
     const prevButton = document.getElementById('prev');
     const nextButton = document.getElementById('next');
     const goToPageButton = document.getElementById('go-to-page');
     const pageNumberInput = document.getElementById('page-number');
     const pageInfo = document.getElementById('page-info');
+    const noResultsMessage = document.createElement('div');
+    noResultsMessage.id = 'no-results';
+    noResultsMessage.textContent = 'No results found.';
+    pokemonContainer.appendChild(noResultsMessage);
+    noResultsMessage.style.display = 'none';
     let currentPage = 1;
     const limit = 50;
     let totalPokemons = 0;
+    let filteredPokemons = []; // Store filtered Pokémon data
     let currentRegion = 'all';
+    let currentType = 'all';
   
     // Region to Pokémon index mapping
     const regionRanges = {
@@ -27,37 +35,60 @@ document.addEventListener('DOMContentLoaded', () => {
       paldea: [899, 1008] // Adjust based on the latest data
     };
   
-    // Function to fetch total Pokémon count from PokéAPI
-    const fetchTotalPokemons = async (region = 'all') => {
-      if (region === 'all') {
-        const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1');
-        const data = await response.json();
-        totalPokemons = data.count;
-      } else {
-        totalPokemons = regionRanges[region][1] - regionRanges[region][0] + 1;
-      }
-      updatePageInfo();
+    // Fetch all Pokémon types from PokéAPI
+    const fetchTypes = async () => {
+      const response = await fetch('https://pokeapi.co/api/v2/type');
+      const data = await response.json();
+      data.results.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type.name;
+        option.textContent = type.name.charAt(0).toUpperCase() + type.name.slice(1);
+        typeSelect.appendChild(option);
+      });
     };
   
     // Function to fetch Pokémon data from PokéAPI
-    const fetchPokemon = async (page, region = 'all') => {
+    const fetchPokemon = async (page) => {
       pokemonContainer.innerHTML = ''; // Clear previous Pokémon
-      const offset = (page - 1) * limit;
-      const [start, end] = regionRanges[region];
-      const url = `https://pokeapi.co/api/v2/pokemon?offset=${offset + start - 1}&limit=${Math.min(limit, end - start + 1 - offset)}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      data.results.forEach(pokemon => {
-        fetchPokemonDetails(pokemon.url);
-      });
-      updatePaginationButtons();
-    };
+      pokemonContainer.appendChild(noResultsMessage); // Ensure noResultsMessage is present
   
-    // Function to fetch detailed data for each Pokémon
-    const fetchPokemonDetails = async (url) => {
-      const response = await fetch(url);
-      const pokemon = await response.json();
-      createPokemonCard(pokemon);
+      const offset = (page - 1) * limit;
+      const [start, end] = regionRanges[currentRegion];
+  
+      let url = `https://pokeapi.co/api/v2/pokemon?offset=${offset + start - 1}&limit=${Math.min(limit, end - start + 1 - offset)}`;
+      let pokemons = [];
+      let totalFilteredPokemons = 0;
+  
+      if (currentType !== 'all') {
+        const typeResponse = await fetch(`https://pokeapi.co/api/v2/type/${currentType}`);
+        const typeData = await typeResponse.json();
+        const filteredPokemonUrls = typeData.pokemon.map(p => p.pokemon.url);
+        const filteredPokemonPromises = filteredPokemonUrls.map(url => fetch(url));
+        const filteredPokemonResponses = await Promise.all(filteredPokemonPromises);
+        filteredPokemons = await Promise.all(filteredPokemonResponses.map(res => res.json()));
+  
+        // Filter based on region range
+        pokemons = filteredPokemons.filter(pokemon => pokemon.id >= start && pokemon.id <= end);
+        totalFilteredPokemons = pokemons.length; // Set filtered total
+      } else {
+        const response = await fetch(url);
+        const data = await response.json();
+        const pokemonPromises = data.results.map(pokemon => fetch(pokemon.url));
+        const pokemonResponses = await Promise.all(pokemonPromises);
+        pokemons = await Promise.all(pokemonResponses.map(res => res.json()));
+      }
+  
+      if (pokemons.length === 0) {
+        noResultsMessage.style.display = 'block';
+      } else {
+        noResultsMessage.style.display = 'none';
+        pokemons.forEach(pokemon => createPokemonCard(pokemon));
+      }
+  
+      // Update totalPokemons based on filtered data if type is selected
+      totalPokemons = currentType !== 'all' ? totalFilteredPokemons : pokemons.length;
+      updatePaginationButtons();
+      updatePageInfo();
     };
   
     // Function to create a Pokémon card
@@ -107,14 +138,14 @@ document.addEventListener('DOMContentLoaded', () => {
     prevButton.addEventListener('click', () => {
       if (currentPage > 1) {
         currentPage--;
-        fetchPokemon(currentPage, currentRegion);
+        fetchPokemon(currentPage);
       }
     });
   
     nextButton.addEventListener('click', () => {
       if (currentPage * limit < totalPokemons) {
         currentPage++;
-        fetchPokemon(currentPage, currentRegion);
+        fetchPokemon(currentPage);
       }
     });
   
@@ -122,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const page = parseInt(pageNumberInput.value);
       if (page > 0 && page <= Math.ceil(totalPokemons / limit)) {
         currentPage = page;
-        fetchPokemon(currentPage, currentRegion);
+        fetchPokemon(currentPage);
       }
     });
   
@@ -131,12 +162,17 @@ document.addEventListener('DOMContentLoaded', () => {
     regionSelect.addEventListener('change', (e) => {
       currentRegion = e.target.value;
       currentPage = 1; // Reset to the first page for new region
-      fetchTotalPokemons(currentRegion);
-      fetchPokemon(currentPage, currentRegion);
+      fetchPokemon(currentPage);
+    });
+  
+    typeSelect.addEventListener('change', (e) => {
+      currentType = e.target.value;
+      currentPage = 1; // Reset to the first page for new type
+      fetchPokemon(currentPage);
     });
   
     // Initial load
-    fetchTotalPokemons();
+    fetchTypes();
     fetchPokemon(currentPage);
   });
   
